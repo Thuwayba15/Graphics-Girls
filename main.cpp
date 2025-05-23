@@ -18,7 +18,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     if (firstMouse) { lastX = xpos; lastY = ypos; firstMouse = false; }
     float xoffset = xpos - lastX, yoffset = lastY - ypos;
     lastX = xpos; lastY = ypos;
-    float sensitivity = 0.09f;
+    float sensitivity = 0.1f;
     xoffset *= sensitivity;
     yoffset *= sensitivity;
     yaw += xoffset * sensitivity;
@@ -46,7 +46,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "u22622668", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Graphics Girls", nullptr, nullptr);
     glfwMakeContextCurrent(window);
     glewExperimental = GL_TRUE;
     glewInit();
