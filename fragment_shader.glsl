@@ -10,6 +10,7 @@ uniform vec3 viewPos;
 
 uniform sampler2D texture1;
 uniform bool useTexture;
+uniform float alpha;
 
 out vec4 FragColor;
 
@@ -37,5 +38,5 @@ void main()
 
     // Final color
     vec3 baseColor = useTexture ? texture(texture1, TexCoord).rgb : objectColor;
-    FragColor = vec4(lighting * baseColor, 1.0);
+    FragColor = vec4(baseColor * lighting, alpha);
 }
