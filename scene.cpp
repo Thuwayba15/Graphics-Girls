@@ -106,19 +106,81 @@ void drawScene(GLuint shader) {
     drawWallWithZigzagAndContours(-4.0f, 1.0f);
     drawWallWithZigzagAndContours(4.0f, -1.0f);
 
-    // WEST WALL - Glass Panelled Office Wall (at Z = 1.5f, covering X axis fully)
-    auto drawWestWall = [&]() {
+   
+
+    auto drawDetailedOffices = [&]() {
+    glm::vec3 deskColor(0.55f, 0.27f, 0.07f);
+    glm::vec3 chairColor(0.1f, 0.1f, 0.4f);
+    glm::vec3 monitorColor(0.2f, 0.5f, 0.8f);
+    glm::vec3 wallColor(0.8f, 0.8f, 0.8f);
+
+    int officeCols = 4, officeRows = 3;
+    float officeW = 1.6f, officeH = 2.4f;
+    float startX = -((officeCols - 1) * 2.0f) / 2.0f;
+    float startY = 1.2f;
+    float z = 2.0f;  // clearly behind glass
+
+    for (int col = 0; col < officeCols; ++col) {
+        float x = startX + col * 2.0f;
+        for (int row = 0; row < officeRows; ++row) {
+            float y = startY + row * 2.8f;
+
+            // Align walls to back of office
+            drawBox(shader, glm::vec3(x, y + 0.5f, z ), glm::vec3(1.4f, 2.0f, 0.05f), wallColor);
+
+
+            // Desk (near center-bottom)
+            drawBox(shader, glm::vec3(x, y - 0.6f, z), glm::vec3(1.4f, 0.3f, 0.6f), deskColor);
+
+            // Monitor (on desk)
+            drawBox(shader, glm::vec3(x, y - 0.2f, z - 0.2f), glm::vec3(0.5f, 0.4f, 0.05f), monitorColor);
+
+            // Chair (slightly lower and forward)
+            drawBox(shader, glm::vec3(x, y - 1.0f, z - 0.5f), glm::vec3(0.6f, 0.6f, 0.6f), chairColor);
+        }
+    }
+};
+
+
+
+ // --- WEST WALL ---
+
+auto drawWestWallOffices = [&]() {
+    int officeCols = 4, officeRows = 3;
+    float officeW = 1.6f, officeH = 2.4f, officeD = 0.5f;
+    float startX = -((officeCols - 1) * 2.0f) / 2.0f;
+    float startY = 1.2f;
+    float z = 1.48f;  // Behind glass
+
+    for (int col = 0; col < officeCols; ++col) {
+        float x = startX + col * 2.0f;
+        for (int row = 0; row < officeRows; ++row) {
+            float y = startY + row * 2.8f;
+
+            glm::vec3 wallColor = (row + col) % 2 == 0
+                ? glm::vec3(0.7f, 0.7f, 0.6f)
+                : glm::vec3(0.5f, 0.5f, 0.5f);
+
+            drawBox(shader, glm::vec3(x, y, z), glm::vec3(officeW, officeH, officeD), wallColor);
+
+            glm::vec3 deskColor = glm::vec3(0.3f, 0.3f, 0.4f);
+            drawBox(shader, glm::vec3(x, y - 0.5f, z + 0.2f), glm::vec3(1.0f, 0.4f, 0.2f), deskColor);
+        }
+    }
+};
+
+auto drawWestWallGlass = [&]() {
     const int cols = 4, rows = 6;
     const float panelW = 2.0f, panelH = 1.5f;
     const float spacingX = 0.2f, spacingY = 0.2f;
     const float glassW = panelW - spacingX, glassH = panelH - spacingY;
     const float startX = -((cols - 1) * panelW) / 2.0f;
     const float startY = 1.0f;
-    const float z = 1.48f;
+    const float z = 0.95f;
 
-    // Glass panels
     glUniform1i(glGetUniformLocation(shader, "useTexture"), 0);
     glUniform1f(glGetUniformLocation(shader, "alpha"), 0.35f);
+
     for (int i = 0; i < cols; ++i) {
         float x = startX + i * panelW;
         for (int j = 0; j < rows; ++j) {
@@ -128,48 +190,27 @@ void drawScene(GLuint shader) {
         }
     }
 
-    // --- Fake offices behind the glass (rendered first)
-// --- Fake office boxes behind the glass wall
-int officeCols = 4, officeRows = 3;
-float officeW = 1.6f, officeH = 2.4f, officeD = 0.5f;
-float startXO = -((officeCols - 1) * 2.0f) / 2.0f;
-float startYO = 1.2f;
-
-for (int col = 0; col < officeCols; ++col) {
-    float x = startXO + col * 2.0f;
-    for (int row = 0; row < officeRows; ++row) {
-        float y = startYO + row * 2.8f;
-        float z = 0.5f;  // clearly behind glass (glass is at z = 1.48f)
-
-        glm::vec3 wallColor = (row + col) % 2 == 0 
-            ? glm::vec3(0.7f, 0.7f, 0.6f) 
-            : glm::vec3(0.5f, 0.5f, 0.5f);
-
-        drawBox(shader, glm::vec3(x, y, z), glm::vec3(officeW, officeH, officeD), wallColor);
-
-        // Optional: add small inner desk block
-        glm::vec3 deskColor = glm::vec3(0.3f, 0.3f, 0.4f);
-        drawBox(shader, glm::vec3(x, y - 0.5f, z + 0.2f), glm::vec3(1.0f, 0.4f, 0.2f), deskColor);
-    }
-}
-
-
-
-    // Reset alpha before filler
     glUniform1f(glGetUniformLocation(shader, "alpha"), 1.0f);
 
-    // Fill vertical gaps between columns
+    float startXO = -((cols - 1) * 2.0f) / 2.0f;
+    float startYO = 1.2f;
+
     for (int i = 0; i <= cols; ++i) {
         float x = startXO + i * panelW - panelW / 2.0f;
         drawBox(shader, glm::vec3(x, 4.5f, z + 0.001f), glm::vec3(spacingX / 2.0f, panelH * rows, 0.01f), glm::vec3(0.85f));
     }
 
-    // Fill horizontal gaps between rows
     for (int j = 0; j <= rows; ++j) {
         float y = startYO + j * panelH - panelH / 2.0f;
         drawBox(shader, glm::vec3(0.0f, y, z + 0.001f), glm::vec3(panelW * cols, spacingY / 2.0f, 0.01f), glm::vec3(0.85f));
     }
-    };
+};
+    
+    
+    // drawWestWallOffices();
+    drawDetailedOffices();
+    drawWestWallGlass();
+    
 
-    drawWestWall(); // Ensure the west wall gets drawn
+
 }
