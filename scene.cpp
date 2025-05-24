@@ -114,11 +114,14 @@ void drawScene(GLuint shader) {
     glm::vec3 monitorColor(0.2f, 0.5f, 0.8f);
     glm::vec3 wallColor(0.8f, 0.8f, 0.8f);
 
+    glm::vec3 backgroundWallColor(0.6f, 0.6f, 0.6f);
+    drawBox(shader, glm::vec3(0.0f, 4.5f, 1.5f), glm::vec3(8.0f, 9.0f, 0.2f), backgroundWallColor);
+
     int officeCols = 4, officeRows = 3;
     float officeW = 1.6f, officeH = 2.4f;
     float startX = -((officeCols - 1) * 2.0f) / 2.0f;
     float startY = 1.2f;
-    float z = 2.0f;  // clearly behind glass
+    float z = 0.48f;  // clearly behind glass
 
     for (int col = 0; col < officeCols; ++col) {
         float x = startX + col * 2.0f;
@@ -176,7 +179,7 @@ auto drawWestWallGlass = [&]() {
     const float glassW = panelW - spacingX, glassH = panelH - spacingY;
     const float startX = -((cols - 1) * panelW) / 2.0f;
     const float startY = 1.0f;
-    const float z = 0.95f;
+    const float z = -0.5f;
 
     glUniform1i(glGetUniformLocation(shader, "useTexture"), 0);
     glUniform1f(glGetUniformLocation(shader, "alpha"), 0.35f);
