@@ -3,12 +3,14 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp> 
+#include <glm/gtc/type_ptr.hpp>
 #include "shader.hpp"
 #include "scene.hpp"
 #include "texture_loader.hpp"
-#include "sun.hpp" 
+#include "sun.hpp"
 #include "moon.hpp"
+#include "roof.hpp"
+#include "ribs.hpp"
 
 const unsigned int WIDTH = 1000, HEIGHT = 800;
 
@@ -22,9 +24,9 @@ glm::mat4 view = glm::lookAt(cameraPos, cameraPos + rotatedFront, rotatedUp);
 
 // Day/Night system
 bool isDay = true;
-bool keyPressed = false; // To prevent multiple toggles
+bool keyPressed = false; // prevent multiple toggles
 
-// Light positions
+// light positions
 glm::vec3 sunPosition = glm::vec3(3.0f, 25.0f, 3.0f);
 glm::vec3 moonPosition = glm::vec3(-4.0f, 25.0f, -3.0f);
 
@@ -70,6 +72,7 @@ void processInput(GLFWwindow *window)
         rotationMatrix = glm::rotate(rotationMatrix, -angle, glm::vec3(0, 0, 1));
 }
 
+//=======================================================================================================================================
 int main()
 {
     glfwInit();
@@ -85,15 +88,17 @@ int main()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
 
-    // Load main shader and setup scene
+    // load main shader & setup scene, then load other shaders
     GLuint shader = LoadShaders("vertex_shader.glsl", "fragment_shader.glsl");
-    // Load Sun's shaders
+    GLuint roofShader = LoadShaders("roof_vertex.glsl", "roof_fragment.glsl");
+    GLuint coverShader = LoadShaders("cover_vertex.glsl", "cover_fragment.glsl");
+    GLuint ribsShader = LoadShaders("ribs_vertex.glsl", "ribs_fragment.glsl");
     GLuint sunShader = LoadShaders("sun_vertex.glsl", "sun_fragment.glsl");
-    // Load Moon's shaders
     GLuint moonShader = LoadShaders("moon_vertex.glsl", "moon_fragment.glsl");
 
-    // glUseProgram(shader);
-    Sun sun; // Create Sun object
+    Sun sun;
+    Roof roof(4.0f, 33.0f, 30, 10);
+    Ribs ribs(4.0f, 33.0f, 8, 30);
     Moon moon;
     setupScene();
 
@@ -103,11 +108,11 @@ int main()
 
         if (isDay)
         {
-            glClearColor(0.5f, 0.7f, 1.0f, 1.0f); // Light blue sky
+            glClearColor(0.5f, 0.7f, 1.0f, 1.0f); // light blue sky
         }
         else
         {
-            glClearColor(0.05f, 0.05f, 0.2f, 1.0f); // Dark night sky
+            glClearColor(0.05f, 0.05f, 0.2f, 1.0f); // dark blue sky
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -125,13 +130,75 @@ int main()
         glUniform3f(glGetUniformLocation(shader, "viewPos"), cameraPos.x, cameraPos.y, cameraPos.z);
         drawScene(shader);
 
+        // Draw Roof (Transparent Yellow Semi-Cylinder)
+        glUseProgram(roofShader);
+        glm::mat4 roofModel = glm::mat4(1.0f);
+        roofModel = glm::translate(roofModel, glm::vec3(0.0f, 9.0f, -31.0f)); // Start at north wall (Z=1.5)
+        roofModel = glm::rotate(roofModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        // scale to perfectly match wall dimensions
+        roofModel = glm::scale(roofModel, glm::vec3(1.0f, 1.0f, -1.0f)); // Ensure proper facing
+
+        glUniformMatrix4fv(glGetUniformLocation(roofShader, "model"), 1, GL_FALSE, glm::value_ptr(roofModel));
+        glUniformMatrix4fv(glGetUniformLocation(roofShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(roofShader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+        // set lighting uniforms
+        if (isDay)
+        {
+            glUniform3f(glGetUniformLocation(roofShader, "lightDir"), sunPosition.x, sunPosition.y, sunPosition.z);
+            glUniform3f(glGetUniformLocation(roofShader, "lightColor"), 1.0f, 1.0f, 1.0f);
+        }
+        else
+        {
+            glUniform3f(glGetUniformLocation(roofShader, "lightDir"), moonPosition.x, moonPosition.y, moonPosition.z);
+            glUniform3f(glGetUniformLocation(roofShader, "lightColor"), 0.5f, 0.5f, 1.0f);
+        }
+        glUniform3f(glGetUniformLocation(roofShader, "objectColor"), 1.0f, 1.0f, 0.0f); // yellow
+        roof.DrawRoof();
+
+        // Draw Roof Covers (Black Semi-Circular End Caps)
+        glUseProgram(coverShader);
+        glUniformMatrix4fv(glGetUniformLocation(coverShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(coverShader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+        // set lighting uniforms for covers
+        if (isDay)
+        {
+            glUniform3f(glGetUniformLocation(coverShader, "lightDir"), sunPosition.x, sunPosition.y, sunPosition.z);
+            glUniform3f(glGetUniformLocation(coverShader, "lightColor"), 1.0f, 1.0f, 1.0f);
+        }
+        else
+        {
+            glUniform3f(glGetUniformLocation(coverShader, "lightDir"), moonPosition.x, moonPosition.y, moonPosition.z);
+            glUniform3f(glGetUniformLocation(coverShader, "lightColor"), 0.5f, 0.5f, 1.0f);
+        }
+        glUniform3f(glGetUniformLocation(coverShader, "objectColor"), 0.0f, 0.0f, 0.0f); // black
+
+        // Front cover (at the beginning of the roof) WALL WITH 2 ENTRANCE DOORS
+        glm::mat4 frontCoverModel = roofModel;
+        glUniformMatrix4fv(glGetUniformLocation(coverShader, "model"), 1, GL_FALSE, glm::value_ptr(frontCoverModel));
+        roof.DrawCovers();
+
+        // Back cover (at the end of the roof) WALL WITH WINODWS (CLOSER TO ORDER DESK)
+        glm::mat4 backCoverModel = roofModel;
+        backCoverModel = glm::translate(backCoverModel, glm::vec3(0.0f, 33.0f, 0.0f));
+        glUniformMatrix4fv(glGetUniformLocation(coverShader, "model"), 1, GL_FALSE, glm::value_ptr(backCoverModel));
+        roof.DrawCovers();
+
+        // Draw ribs
+        glUseProgram(ribsShader);
+        glUniformMatrix4fv(glGetUniformLocation(ribsShader, "model"), 1, GL_FALSE, glm::value_ptr(roofModel));
+        glUniformMatrix4fv(glGetUniformLocation(ribsShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(ribsShader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        ribs.Draw();
+
         if (isDay)
         {
             // Draw sun
             glUseProgram(sunShader);
             glm::mat4 sunModel = glm::mat4(1.0f);
-            sunModel = glm::translate(sunModel, sunPosition); // Match lightPos
-            sunModel = glm::scale(sunModel, glm::vec3(3.0f)); // Optional: Scale if needed
+            sunModel = glm::translate(sunModel, sunPosition);
+            sunModel = glm::scale(sunModel, glm::vec3(3.0f));
             glUniformMatrix4fv(glGetUniformLocation(sunShader, "model"), 1, GL_FALSE, glm::value_ptr(sunModel));
             glUniformMatrix4fv(glGetUniformLocation(sunShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
             glUniformMatrix4fv(glGetUniformLocation(sunShader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -142,8 +209,8 @@ int main()
             // Draw moon
             glUseProgram(moonShader);
             glm::mat4 moonModel = glm::mat4(1.0f);
-            moonModel = glm::translate(moonModel, moonPosition); // Match lightPos
-            moonModel = glm::scale(moonModel, glm::vec3(2.0f));  // Optional: Scale if needed
+            moonModel = glm::translate(moonModel, moonPosition);
+            moonModel = glm::scale(moonModel, glm::vec3(2.0f));
             glUniformMatrix4fv(glGetUniformLocation(moonShader, "model"), 1, GL_FALSE, glm::value_ptr(moonModel));
             glUniformMatrix4fv(glGetUniformLocation(moonShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
             glUniformMatrix4fv(glGetUniformLocation(moonShader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
