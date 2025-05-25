@@ -8,7 +8,7 @@ struct PointLight {
     float quadratic;
 };
 
-#define NR_POINT_LIGHTS 4  // match this w. the no, of lights
+#define NR_POINT_LIGHTS 8  // match this w. the no, of lights
 
 in vec3 FragPos;
 in vec3 Normal;

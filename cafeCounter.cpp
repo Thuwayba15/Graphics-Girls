@@ -216,38 +216,38 @@ void renderChocolateBarsOnCounter(const std::vector<TexturedMesh>& chocolateBars
 }
 
 // Function to setup OpenGL buffers for a textured mesh
-void setupMeshBuffers(TexturedMesh& mesh) {
-    glGenVertexArrays(1, &mesh.VAO);
-    glBindVertexArray(mesh.VAO);
+// void setupMeshBuffers(TexturedMesh& mesh) {
+//     glGenVertexArrays(1, &mesh.VAO);
+//     glBindVertexArray(mesh.VAO);
 
-    // === POSITION ===
-    glGenBuffers(1, &mesh.VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
-    glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(float), mesh.vertices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0); // aPos at location 0
-    glEnableVertexAttribArray(0);
+//     // === POSITION ===
+//     glGenBuffers(1, &mesh.VBO);
+//     glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
+//     glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(float), mesh.vertices.data(), GL_STATIC_DRAW);
+//     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0); // aPos at location 0
+//     glEnableVertexAttribArray(0);
 
-    // === TEXCOORD ===
-    glGenBuffers(1, &mesh.TBO);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.TBO);
-    glBufferData(GL_ARRAY_BUFFER, mesh.texCoords.size() * sizeof(float), mesh.texCoords.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0); // aTexCoord at location 1
-    glEnableVertexAttribArray(1);
+//     // === TEXCOORD ===
+//     glGenBuffers(1, &mesh.TBO);
+//     glBindBuffer(GL_ARRAY_BUFFER, mesh.TBO);
+//     glBufferData(GL_ARRAY_BUFFER, mesh.texCoords.size() * sizeof(float), mesh.texCoords.data(), GL_STATIC_DRAW);
+//     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0); // aTexCoord at location 1
+//     glEnableVertexAttribArray(1);
 
-    // === NORMAL ===
-    glGenBuffers(1, &mesh.NBO);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.NBO);
-    glBufferData(GL_ARRAY_BUFFER, mesh.normals.size() * sizeof(float), mesh.normals.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0); // aNormal at location 2
-    glEnableVertexAttribArray(2);
+//     // === NORMAL ===
+//     glGenBuffers(1, &mesh.NBO);
+//     glBindBuffer(GL_ARRAY_BUFFER, mesh.NBO);
+//     glBufferData(GL_ARRAY_BUFFER, mesh.normals.size() * sizeof(float), mesh.normals.data(), GL_STATIC_DRAW);
+//     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0); // aNormal at location 2
+//     glEnableVertexAttribArray(2);
 
-    // === INDEX BUFFER ===
-    glGenBuffers(1, &mesh.EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(unsigned int), mesh.indices.data(), GL_STATIC_DRAW);
+//     // === INDEX BUFFER ===
+//     glGenBuffers(1, &mesh.EBO);
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
+//     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(unsigned int), mesh.indices.data(), GL_STATIC_DRAW);
 
-    glBindVertexArray(0); // Clean unbind
-}
+//     glBindVertexArray(0); // Clean unbind
+// }
 
 
 // Function to render a textured mesh with material properties
@@ -278,150 +278,150 @@ void renderTexturedMesh(const TexturedMesh& mesh, GLuint shaderProgram, const gl
 
 
 // Simple solid color texture generator
-GLuint generateSolidColorTexture(float r, float g, float b) {
-    const int width = 4;
-    const int height = 4;
-    std::vector<unsigned char> data(width * height * 3);
+// GLuint generateSolidColorTexture(float r, float g, float b) {
+//     const int width = 4;
+//     const int height = 4;
+//     std::vector<unsigned char> data(width * height * 3);
     
-    for (int i = 0; i < width * height * 3; i += 3) {
-        data[i] = (unsigned char)(r * 255);
-        data[i + 1] = (unsigned char)(g * 255);
-        data[i + 2] = (unsigned char)(b * 255);
-    }
+//     for (int i = 0; i < width * height * 3; i += 3) {
+//         data[i] = (unsigned char)(r * 255);
+//         data[i + 1] = (unsigned char)(g * 255);
+//         data[i + 2] = (unsigned char)(b * 255);
+//     }
     
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
+//     GLuint textureID;
+//     glGenTextures(1, &textureID);
+//     glBindTexture(GL_TEXTURE_2D, textureID);
+//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-    return textureID;
-}
+//     return textureID;
+// }
 
-//Counter marble
-// Generate light grey marble texture for counter top
-GLuint generateLightGreyMarbleTexture() {
-    const int width = 256;
-    const int height = 256;
-    std::vector<unsigned char> data(width * height * 3);
+// //Counter marble
+// // Generate light grey marble texture for counter top
+// GLuint generateLightGreyMarbleTexture() {
+//     const int width = 256;
+//     const int height = 256;
+//     std::vector<unsigned char> data(width * height * 3);
     
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            int index = (y * width + x) * 3;
+//     for (int y = 0; y < height; y++) {
+//         for (int x = 0; x < width; x++) {
+//             int index = (y * width + x) * 3;
             
-            // Base light grey marble color
-            float baseR = 0.85f;
-            float baseG = 0.85f;
-            float baseB = 0.85f;
+//             // Base light grey marble color
+//             float baseR = 0.85f;
+//             float baseG = 0.85f;
+//             float baseB = 0.85f;
             
-        // Create marble veining pattern (more veins)
-            float vein1 = sin((x + y) * 0.03f) * 0.5f + 0.5f;
-            float vein2 = sin((x - y) * 0.025f + 2.0f) * 0.5f + 0.5f;
-            float vein3 = sin(x * 0.02f + y * 0.035f + 4.0f) * 0.5f + 0.5f;
-            float vein4 = sin((x + y * 2) * 0.018f + 1.5f) * 0.5f + 0.5f;
-            float vein5 = sin((x * 3 - y) * 0.012f + 3.5f) * 0.5f + 0.5f;
-            float vein6 = sin(x * 0.008f + y * 0.045f + 6.0f) * 0.5f + 0.5f;
+//         // Create marble veining pattern (more veins)
+//             float vein1 = sin((x + y) * 0.03f) * 0.5f + 0.5f;
+//             float vein2 = sin((x - y) * 0.025f + 2.0f) * 0.5f + 0.5f;
+//             float vein3 = sin(x * 0.02f + y * 0.035f + 4.0f) * 0.5f + 0.5f;
+//             float vein4 = sin((x + y * 2) * 0.018f + 1.5f) * 0.5f + 0.5f;
+//             float vein5 = sin((x * 3 - y) * 0.012f + 3.5f) * 0.5f + 0.5f;
+//             float vein6 = sin(x * 0.008f + y * 0.045f + 6.0f) * 0.5f + 0.5f;
             
-            float veining = (vein1 * vein2 * vein3 * vein4 * vein5 * vein6);
+//             float veining = (vein1 * vein2 * vein3 * vein4 * vein5 * vein6);
             
-            // Create lighter streaks pattern
-            float streak1 = sin(x * 0.05f + y * 0.01f) * 0.5f + 0.5f;
-            float streak2 = sin((x + y) * 0.04f + 1.0f) * 0.5f + 0.5f;
-            float lightStreaks = streak1 * streak2;
+//             // Create lighter streaks pattern
+//             float streak1 = sin(x * 0.05f + y * 0.01f) * 0.5f + 0.5f;
+//             float streak2 = sin((x + y) * 0.04f + 1.0f) * 0.5f + 0.5f;
+//             float lightStreaks = streak1 * streak2;
             
-            // Add darker grey veins for marble pattern
-            if (veining < 0.3f) {
-                baseR *= 0.6f;  // Darker grey veins
-                baseG *= 0.6f;
-                baseB *= 0.6f;
-            } else if (veining < 0.5f) {
-                baseR *= 0.8f;  // Medium grey veins
-                baseG *= 0.8f;
-                baseB *= 0.8f;
-            }
+//             // Add darker grey veins for marble pattern
+//             if (veining < 0.3f) {
+//                 baseR *= 0.6f;  // Darker grey veins
+//                 baseG *= 0.6f;
+//                 baseB *= 0.6f;
+//             } else if (veining < 0.5f) {
+//                 baseR *= 0.8f;  // Medium grey veins
+//                 baseG *= 0.8f;
+//                 baseB *= 0.8f;
+//             }
 
-             // Add lighter streaks
-            if (lightStreaks > 0.8f) {
-                baseR = std::min(1.0f, baseR * 1.3f);  // Lighter streaks
-                baseG = std::min(1.0f, baseG * 1.3f);
-                baseB = std::min(1.0f, baseB * 1.3f);
-            }
+//              // Add lighter streaks
+//             if (lightStreaks > 0.8f) {
+//                 baseR = std::min(1.0f, baseR * 1.3f);  // Lighter streaks
+//                 baseG = std::min(1.0f, baseG * 1.3f);
+//                 baseB = std::min(1.0f, baseB * 1.3f);
+//             }
              
-            // Add subtle noise for texture
-            float noise = ((rand() % 100) / 100.0f - 0.5f) * 0.03f;
+//             // Add subtle noise for texture
+//             float noise = ((rand() % 100) / 100.0f - 0.5f) * 0.03f;
             
-            data[index] = (unsigned char)((baseR + noise) * 255);
-            data[index + 1] = (unsigned char)((baseG + noise) * 255);
-            data[index + 2] = (unsigned char)((baseB + noise) * 255);
-        }
-    }
+//             data[index] = (unsigned char)((baseR + noise) * 255);
+//             data[index + 1] = (unsigned char)((baseG + noise) * 255);
+//             data[index + 2] = (unsigned char)((baseB + noise) * 255);
+//         }
+//     }
     
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
-    glGenerateMipmap(GL_TEXTURE_2D);
+//     GLuint textureID;
+//     glGenTextures(1, &textureID);
+//     glBindTexture(GL_TEXTURE_2D, textureID);
+//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
+//     glGenerateMipmap(GL_TEXTURE_2D);
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-    return textureID;
-}
+//     return textureID;
+// }
 
-// Generate dark shiny grey texture for counter base
-GLuint generateDarkShinyGreyTexture() {
-    const int width = 256;
-    const int height = 256;
-    std::vector<unsigned char> data(width * height * 3);
+// // Generate dark shiny grey texture for counter base
+// GLuint generateDarkShinyGreyTexture() {
+//     const int width = 256;
+//     const int height = 256;
+//     std::vector<unsigned char> data(width * height * 3);
     
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            int index = (y * width + x) * 3;
+//     for (int y = 0; y < height; y++) {
+//         for (int x = 0; x < width; x++) {
+//             int index = (y * width + x) * 3;
             
-            // Base very dark grey color
-            float baseR = 0.15f;
-            float baseG = 0.15f;
-            float baseB = 0.15f;
+//             // Base very dark grey color
+//             float baseR = 0.15f;
+//             float baseG = 0.15f;
+//             float baseB = 0.15f;
             
-            // Create subtle wood grain or brushed metal pattern
-            float pattern1 = sin(x * 0.05f) * 0.1f + 0.9f;
-            float pattern2 = sin(y * 0.03f + 1.5f) * 0.05f + 0.95f;
+//             // Create subtle wood grain or brushed metal pattern
+//             float pattern1 = sin(x * 0.05f) * 0.1f + 0.9f;
+//             float pattern2 = sin(y * 0.03f + 1.5f) * 0.05f + 0.95f;
             
-            float patternCombined = pattern1 * pattern2;
+//             float patternCombined = pattern1 * pattern2;
             
-            // Apply pattern for subtle variation
-            baseR *= patternCombined;
-            baseG *= patternCombined;
-            baseB *= patternCombined;
+//             // Apply pattern for subtle variation
+//             baseR *= patternCombined;
+//             baseG *= patternCombined;
+//             baseB *= patternCombined;
             
-            // Add very subtle noise for realistic texture
-            float noise = ((rand() % 100) / 100.0f - 0.5f) * 0.03f;
+//             // Add very subtle noise for realistic texture
+//             float noise = ((rand() % 100) / 100.0f - 0.5f) * 0.03f;
             
-            data[index] = (unsigned char)((baseR + noise) * 255);
-            data[index + 1] = (unsigned char)((baseG + noise) * 255);
-            data[index + 2] = (unsigned char)((baseB + noise) * 255);
-        }
-    }
+//             data[index] = (unsigned char)((baseR + noise) * 255);
+//             data[index + 1] = (unsigned char)((baseG + noise) * 255);
+//             data[index + 2] = (unsigned char)((baseB + noise) * 255);
+//         }
+//     }
     
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
-    glGenerateMipmap(GL_TEXTURE_2D);
+//     GLuint textureID;
+//     glGenTextures(1, &textureID);
+//     glBindTexture(GL_TEXTURE_2D, textureID);
+//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
+//     glGenerateMipmap(GL_TEXTURE_2D);
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-    return textureID;
-}
+//     return textureID;
+// }
 
 
 // Function to calculate normals for a mesh

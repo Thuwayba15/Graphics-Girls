@@ -8,6 +8,7 @@
 #include "shader.hpp"
 #include "scene.hpp"
 #include "texture_loader.hpp"
+#include "textured_mesh.hpp"
 #include "sun.hpp"
 #include "moon.hpp"
 #include "roof.hpp"
@@ -17,6 +18,7 @@
 #include "roundChair.hpp"
 #include "plant.hpp"
 #include "cafeCounter.hpp"
+#include "coffeeMachine.hpp"
 
 
 
@@ -41,14 +43,21 @@ struct PointLight
 };
 
 // ========== Light Configuration ==========
-const int NUM_POINT_LIGHTS = 4;
+const int NUM_POINT_LIGHTS = 8;
 PointLight wallLights[NUM_POINT_LIGHTS] = {
-    // left wall lights (x = -3.9)
-    {glm::vec3(-3.9f, 3.0f, -10.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f},
-    {glm::vec3(-3.9f, 3.0f, -20.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f},
-    // right wall lights (x = 3.9)
-    {glm::vec3(3.9f, 3.0f, -10.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f},
-    {glm::vec3(3.9f, 3.0f, -20.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}};
+    // Corners of the room (near ceiling)
+    {glm::vec3(-3.9f, 3.0f,  0.0f),  glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}, // Front left
+    {glm::vec3( 3.9f, 3.0f,  0.0f),  glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}, // Front right
+    {glm::vec3(-3.9f, 3.0f, -30.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}, // Back left
+    {glm::vec3( 3.9f, 3.0f, -30.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}, // Back right
+
+    // Optional: extra lights halfway along each wall
+    {glm::vec3( 0.0f, 3.0f,  0.0f),  glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}, // Center front
+    {glm::vec3( 0.0f, 3.0f, -30.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}, // Center back
+    {glm::vec3(-3.9f, 3.0f, -15.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}, // Mid left
+    {glm::vec3( 3.9f, 3.0f, -15.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}  // Mid right
+};
+
 
 // Day/Night system
 bool isDay = true;
@@ -80,6 +89,11 @@ std::vector<glm::vec3> plantPositions = {
 //cafeCounter stuff
 std::vector<TexturedMesh> counterMeshes;
 std::vector<TexturedMesh> chocolateBars;
+
+//coffee machine stuff
+CoffeeMachine coffeeMachine;
+GLuint shaderProgram;
+
 
 
 
@@ -185,6 +199,17 @@ int main()
     createCafeCounter(counterMeshes);
     createChocolateBarsOnCounter(chocolateBars);
 
+    // Generate coffee machine textures
+         // Make sure this texture exists
+
+        // Build coffee machine
+       metalTexture = generateMetalTexture();
+        redTexture = generateSolidColorTexture(0.7f, 0.1f, 0.1f);
+        blackTexture = generateSolidColorTexture(0.0f, 0.0f, 0.0f);
+        glassTexture = generateGlassTexture(); // This one has alpha!
+        coffeeMachine = buildCoffeeMachine();
+
+
 
 
     while (!glfwWindowShouldClose(window))
@@ -266,6 +291,16 @@ int main()
         }
 
         renderChocolateBarsOnCounter(chocolateBars, shader, counterModel, view, projection);
+
+        // Position coffee machine on the counter
+        glm::mat4 coffeeModel = counterModel; // Reuse the same base as counter
+        coffeeModel = glm::translate(coffeeModel, glm::vec3(0.5f, 0.3f, 0.0f)); // Adjust as needed to place properly
+        coffeeModel = glm::scale(coffeeModel, glm::vec3(0.3f));
+
+        renderCoffeeMachine(coffeeMachine, shader, coffeeModel);
+
+
+        
 
         
 
@@ -398,6 +433,7 @@ int main()
         chair.cleanup();
     }
     glDeleteProgram(chairShader);
+    cleanupCoffeeMachine(coffeeMachine);
 
     glfwTerminate();
     return 0;
