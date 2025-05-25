@@ -8,13 +8,20 @@ struct PointLight {
     float quadratic;
 };
 
-#define NR_POINT_LIGHTS 8  // match this w. the no, of lights
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    vec3 ambient;
+};
+
+#define NR_POINT_LIGHTS 8
 
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoord;
 
 uniform PointLight pointLights[NR_POINT_LIGHTS];
+uniform DirectionalLight dirLight;
 uniform vec3 viewPos;
 uniform vec3 objectColor;
 uniform bool useTexture;
@@ -29,18 +36,24 @@ void main()
 {
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 result = vec3(0.0);
     
-    // calc all point lights
+    // directional light calc
+    vec3 lightDir = normalize(dirLight.direction);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * dirLight.color;
+    
+    vec3 reflectDir = reflect(-lightDir, norm);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    vec3 specular = 0.5 * spec * dirLight.color; // Adjust specular strength
+    
+    vec3 ambient = dirLight.ambient;
+    vec3 result = ambient + diffuse + specular;
+
+    // add point lights
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
         result += CalculatePointLight(pointLights[i], norm, FragPos, viewDir);
     
-    // ambient contribution
-    float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * objectColor;
-    result += ambient;
-
-    // combine w. texture
+    // combine w texture
     vec3 baseColor = useTexture ? texture(texture1, TexCoord).rgb : objectColor;
     FragColor = vec4(baseColor * result, alpha);
 }
