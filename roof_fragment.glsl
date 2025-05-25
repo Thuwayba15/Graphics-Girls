@@ -28,6 +28,6 @@ void main() {
     vec3 diffuse = totalDiff * lightColor;
     
     // combine results with higher transparency
-    vec3 result = (ambient + diffuse) * objectColor;
+    vec3 result = (vec3(0.1) + diffuse) * objectColor; // objectColor should be yellow
     FragColor = vec4(result, 0.3); 
 }
