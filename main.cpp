@@ -85,11 +85,16 @@ GLuint highChairShader;
 std::vector<HighChair> highChairs;
 const glm::vec3 HIGH_CHAIR_SCALE = glm::vec3(0.4f); // Scale for high chairs
 const std::vector<glm::vec3> HIGH_CHAIR_POSITIONS = {
-    glm::vec3(-0.5f, 0.0f, -8.0f),  // left front
-    glm::vec3(0.5f, 0.0f, -12.0f),  // right middle-front
-    glm::vec3(-1.0f, 0.0f, -16.0f), // left middle-back
-    glm::vec3(1.2f, 0.0f, -22.0f),  // right back
-    glm::vec3(-0.8f, 0.0f, -25.0f)  // left far back
+    glm::vec3(1.5f, 0.0f, -12.0f),   // near Table 1
+    glm::vec3(-1.5f, 0.0f, -17.0f),  // near Table 2
+    glm::vec3(3.0f, 0.0f, -22.2f),   // near Table 3
+    glm::vec3(-3.0f, 0.0f, -22.2f) 
+};
+const std::vector<float> HIGH_CHAIR_ROTATIONS = {
+    0.0f,     // Chair 0 faces forward (table is in front)
+    0.0f,   // Chair 1 faces backward (table is behind)
+    -45.0f,   // Chair 2 diagonally toward table
+    45.0f     // Chair 3 diagonally toward table
 };
 
 // Plant related variables
@@ -261,16 +266,18 @@ int main()
         generateCouch(couch, 0.0f, 0.0f, 0.0f, 2.2f, 1.2f, 1.0f, 8); // x,y,z irrelevant here
     }
 
-    // Couch near east wall (facing west)
-    couchModels[0] = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 0.0f, -10.0f));
-    couchModels[0] = glm::rotate(couchModels[0], glm::radians(180.0f), glm::vec3(0, 1, 0));
+    // Couch near south wall (facing north)
+    couchModels[0] = glm::translate(glm::mat4(1.0f), glm::vec3(3.5f, 0.0f, -17.0f)); 
+    couchModels[0] = glm::rotate(couchModels[0], glm::radians(270.0f), glm::vec3(0, 1, 0));
 
-    // Couch near west wall (facing east)
-    couchModels[1] = glm::translate(glm::mat4(1.0f), glm::vec3(-3.0f, 0.0f, -20.0f)); // Already facing forward
+    // North wall couch (facing South)
+    couchModels[1] = glm::translate(glm::mat4(1.0f), glm::vec3(-3.0f, 0.0f, -17.0f)); 
+    couchModels[1] = glm::rotate(couchModels[1], glm::radians(90.0f), glm::vec3(0, 1, 0));
+
 
     // Couch near north wall (facing south)
-    couchModels[2] = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -29.0f));
-    couchModels[2] = glm::rotate(couchModels[2], glm::radians(90.0f), glm::vec3(0, 1, 0));
+    couchModels[2] = glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.0f, -25.0f));
+    couchModels[2] = glm::rotate(couchModels[2], glm::radians(270.0f), glm::vec3(0, 1, 0));
 
 
 
@@ -344,13 +351,8 @@ int main()
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, HIGH_CHAIR_POSITIONS[i]);
+            model = glm::rotate(model, glm::radians(HIGH_CHAIR_ROTATIONS[i]), glm::vec3(0, 1, 0));
             model = glm::scale(model, HIGH_CHAIR_SCALE);
-
-            // rotate some chairs for variety
-            if (i % 2 == 1)
-            {
-                model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0));
-            }
 
             glUniform3f(glGetUniformLocation(highChairShader, "lightPos"),
                         isDay ? sunPosition.x : moonPosition.x,
@@ -365,6 +367,8 @@ int main()
 
             highChairs[i].render(model, view, projection);
         }
+
+
 
         // Render plants-----------------------------------------------------------------------------------------------------
         glUseProgram(shader);
