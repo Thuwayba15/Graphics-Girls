@@ -20,10 +20,6 @@
 #include "plant.hpp"
 #include "cafeCounter.hpp"
 #include "coffeeMachine.hpp"
-#include "table.hpp"
-#include "couch.hpp"
-
-
 
 const unsigned int WIDTH = 1000, HEIGHT = 800;
 
@@ -61,13 +57,21 @@ PointLight wallLights[NUM_POINT_LIGHTS] = {
     {glm::vec3(3.9f, 3.0f, -15.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}   // Mid right
 };
 
+// Add directional light structure here
+struct DirectionalLight
+{
+    glm::vec3 direction;
+    glm::vec3 color;
+    glm::vec3 ambient;
+};
+
 // Day/Night system
 bool isDay = true;
 bool keyPressed = false; // prevent multiple toggles
 
-// light positions
-glm::vec3 sunPosition = glm::vec3(3.0f, 25.0f, 3.0f);
-glm::vec3 moonPosition = glm::vec3(-4.0f, 25.0f, -3.0f);
+// directional lighting light positions
+glm::vec3 sunPosition = glm::vec3(5.0f, 40.0f, 5.0f);    // Adjusted for better angle
+glm::vec3 moonPosition = glm::vec3(-5.0f, 40.0f, -5.0f); // Adjusted for better angle
 
 // round yellow chairs:
 GLuint chairShader;
@@ -85,16 +89,11 @@ GLuint highChairShader;
 std::vector<HighChair> highChairs;
 const glm::vec3 HIGH_CHAIR_SCALE = glm::vec3(0.4f); // Scale for high chairs
 const std::vector<glm::vec3> HIGH_CHAIR_POSITIONS = {
-    glm::vec3(1.5f, 0.0f, -12.0f),   // near Table 1
-    glm::vec3(-1.5f, 0.0f, -17.0f),  // near Table 2
-    glm::vec3(3.0f, 0.0f, -22.2f),   // near Table 3
-    glm::vec3(-3.0f, 0.0f, -22.2f) 
-};
-const std::vector<float> HIGH_CHAIR_ROTATIONS = {
-    0.0f,     // Chair 0 faces forward (table is in front)
-    0.0f,   // Chair 1 faces backward (table is behind)
-    -45.0f,   // Chair 2 diagonally toward table
-    45.0f     // Chair 3 diagonally toward table
+    glm::vec3(-0.5f, 0.0f, -8.0f),  // left front
+    glm::vec3(0.5f, 0.0f, -12.0f),  // right middle-front
+    glm::vec3(-1.0f, 0.0f, -16.0f), // left middle-back
+    glm::vec3(1.2f, 0.0f, -22.0f),  // right back
+    glm::vec3(-0.8f, 0.0f, -25.0f)  // left far back
 };
 
 // Plant related variables
@@ -112,18 +111,6 @@ std::vector<TexturedMesh> chocolateBars;
 // coffee machine stuff
 CoffeeMachine coffeeMachine;
 GLuint shaderProgram;
-
-//Small table
-std::vector<Counter> smallTables;
-
-// Couch
-std::vector<TexturedMesh> couches;
-std::vector<glm::mat4> couchModels;
-
-
-
-
-
 
 void processInput(GLFWwindow *window)
 {
@@ -248,46 +235,10 @@ int main()
     glassTexture = generateGlassTexture(); // This one has alpha!
     coffeeMachine = buildCoffeeMachine();
 
-
-    // Create small table
-    // Create one table per chair
-        smallTables.resize(CHAIR_POSITIONS.size());
-        for (auto& table : smallTables) {
-            generateCounter(table, 0.8f, 0.8f, 0.5f); // Smaller table: width, depth, height
-        }
-
-    // Create couches-----------------------------------------------------------------------------------------------------
-    // Generate and place 3 couches
-    couches.resize(3);
-    couchModels.resize(3);
-
-    // Generate all couches
-    for (auto& couch : couches) {
-        generateCouch(couch, 0.0f, 0.0f, 0.0f, 2.2f, 1.2f, 1.0f, 8); // x,y,z irrelevant here
-    }
-
-    // Couch near south wall (facing north)
-    couchModels[0] = glm::translate(glm::mat4(1.0f), glm::vec3(3.5f, 0.0f, -17.0f)); 
-    couchModels[0] = glm::rotate(couchModels[0], glm::radians(270.0f), glm::vec3(0, 1, 0));
-
-    // North wall couch (facing South)
-    couchModels[1] = glm::translate(glm::mat4(1.0f), glm::vec3(-3.0f, 0.0f, -17.0f)); 
-    couchModels[1] = glm::rotate(couchModels[1], glm::radians(90.0f), glm::vec3(0, 1, 0));
-
-
-    // Couch near north wall (facing south)
-    couchModels[2] = glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.0f, -25.0f));
-    couchModels[2] = glm::rotate(couchModels[2], glm::radians(270.0f), glm::vec3(0, 1, 0));
-
-
-
-
-
-
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-//-----------------------------------------------------------------------------------------------------
+        //-----------------------------------------------------------------------------------------------------
         if (isDay)
         {
             glClearColor(0.5f, 0.7f, 1.0f, 1.0f); // light blue sky
@@ -314,6 +265,20 @@ int main()
             glUniform1f(glGetUniformLocation(shader, (prefix + ".quadratic").c_str()), wallLights[i].quadratic);
         }
 
+        // ========== NEW: DIRECTIONAL LIGHT SETUP ==========
+        // calc ACTUAL light direction based on day/night
+        glm::vec3 lightDir = isDay ? glm::normalize(-sunPosition) : glm::normalize(-moonPosition);
+        glm::vec3 lightColor = isDay ? glm::vec3(1.0f) : glm::vec3(0.2f, 0.2f, 0.5f);
+        glm::vec3 ambient = isDay ? glm::vec3(0.1f) : glm::vec3(0.02f, 0.02f, 0.05f);
+
+        // set directional light uniforms
+        glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), lightDir.x, lightDir.y, lightDir.z);
+
+        // get uniform locations
+        glUniform3f(glGetUniformLocation(shader, "dirLight.color"), lightColor.r, lightColor.g, lightColor.b);
+        glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), ambient.r, ambient.g, ambient.b);
+
+        // set common matrices
         glm::mat4 model = glm::mat4(1.0f);
         glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -351,8 +316,13 @@ int main()
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, HIGH_CHAIR_POSITIONS[i]);
-            model = glm::rotate(model, glm::radians(HIGH_CHAIR_ROTATIONS[i]), glm::vec3(0, 1, 0));
             model = glm::scale(model, HIGH_CHAIR_SCALE);
+
+            // rotate some chairs for variety
+            if (i % 2 == 1)
+            {
+                model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0));
+            }
 
             glUniform3f(glGetUniformLocation(highChairShader, "lightPos"),
                         isDay ? sunPosition.x : moonPosition.x,
@@ -367,8 +337,6 @@ int main()
 
             highChairs[i].render(model, view, projection);
         }
-
-
 
         // Render plants-----------------------------------------------------------------------------------------------------
         glUseProgram(shader);
@@ -397,87 +365,38 @@ int main()
 
         renderCoffeeMachine(coffeeMachine, shader, coffeeModel);
 
-        //Small tables
-        // Use main shader for small tables
-        glUseProgram(shader);
-        for (size_t i = 0; i < smallTables.size(); ++i)
-        {
-            glm::vec3 chairPos = CHAIR_POSITIONS[i];
-            glm::vec3 tablePos = chairPos + glm::vec3(0.0f, 0.0f, -0.8f); // Offset slightly in front of chair
-            glm::mat4 tableModel = glm::mat4(1.0f);
-            tableModel = glm::translate(tableModel, tablePos);
-            renderCounter(smallTables[i], shader, tableModel, 0.5f);
-        }
-
-        // Draw couches-----------------------------------------------------------------------------------------------------
-        for (int i = 0; i < 3; ++i) {
-            renderMesh(couches[i], couchModels[i], shader);
-        }
-
-
-
-
-
-        
-
-
-
-        // Draw Roof (Transparent Yellow Semi-Cylinder)
+        // Draw Roof (Transparent Yellow Semi-Cylinder)-----------------------------------------------------------------------------------------------------
         glUseProgram(roofShader);
         glm::mat4 roofModel = glm::mat4(1.0f);
-        roofModel = glm::translate(roofModel, glm::vec3(0.0f, 9.0f, -31.0f)); // start at north wall (Z=1.5)
+        roofModel = glm::translate(roofModel, glm::vec3(0.0f, 9.0f, -31.0f));
         roofModel = glm::rotate(roofModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        // scale to perfectly match wall dimensions
-        roofModel = glm::scale(roofModel, glm::vec3(1.0f, 1.0f, -1.0f)); // ensure proper facing
+        roofModel = glm::scale(roofModel, glm::vec3(1.0f, 1.0f, -1.0f));
+        glUniform3f(glGetUniformLocation(roofShader, "objectColor"), 1.0f, 1.0f, 0.0f);
 
         glUniformMatrix4fv(glGetUniformLocation(roofShader, "model"), 1, GL_FALSE, glm::value_ptr(roofModel));
         glUniformMatrix4fv(glGetUniformLocation(roofShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(roofShader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-        // set lighting uniforms
-        if (isDay)
-        {
-            glUniform3f(glGetUniformLocation(roofShader, "lightDir"), sunPosition.x, sunPosition.y, sunPosition.z);
-            glUniform3f(glGetUniformLocation(roofShader, "lightColor"), 1.0f, 1.0f, 1.0f);
-        }
-        else
-        {
-            glUniform3f(glGetUniformLocation(roofShader, "lightDir"), moonPosition.x, moonPosition.y, moonPosition.z);
-            glUniform3f(glGetUniformLocation(roofShader, "lightColor"), 0.5f, 0.5f, 1.0f);
-        }
-        glUniform3f(glGetUniformLocation(roofShader, "objectColor"), 1.0f, 1.0f, 0.0f); // yellow
+        glUniform3f(glGetUniformLocation(roofShader, "lightDir"), lightDir.x, lightDir.y, lightDir.z);
+        glUniform3f(glGetUniformLocation(roofShader, "lightColor"), lightColor.r, lightColor.g, lightColor.b);
         roof.DrawRoof();
 
-        // Draw Roof Covers (Black Semi-Circular End Caps)
+        // ========== ROOF COVERS ==========
         glUseProgram(coverShader);
         glUniformMatrix4fv(glGetUniformLocation(coverShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(coverShader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        glUniform3f(glGetUniformLocation(coverShader, "lightDir"), lightDir.x, lightDir.y, lightDir.z);
+        glUniform3f(glGetUniformLocation(coverShader, "lightColor"), lightColor.r, lightColor.g, lightColor.b);
 
-        // set lighting uniforms for covers
-        if (isDay)
-        {
-            glUniform3f(glGetUniformLocation(coverShader, "lightDir"), sunPosition.x, sunPosition.y, sunPosition.z);
-            glUniform3f(glGetUniformLocation(coverShader, "lightColor"), 1.0f, 1.0f, 1.0f);
-        }
-        else
-        {
-            glUniform3f(glGetUniformLocation(coverShader, "lightDir"), moonPosition.x, moonPosition.y, moonPosition.z);
-            glUniform3f(glGetUniformLocation(coverShader, "lightColor"), 0.5f, 0.5f, 1.0f);
-        }
-        glUniform3f(glGetUniformLocation(coverShader, "objectColor"), 0.0f, 0.0f, 0.0f); // black
-
-        // Front cover (at the beginning of the roof) WALL WITH 2 ENTRANCE DOORS
-        glm::mat4 frontCoverModel = roofModel;
-        glUniformMatrix4fv(glGetUniformLocation(coverShader, "model"), 1, GL_FALSE, glm::value_ptr(frontCoverModel));
+        // Front cover
+        glUniformMatrix4fv(glGetUniformLocation(coverShader, "model"), 1, GL_FALSE, glm::value_ptr(roofModel));
         roof.DrawCovers();
 
-        // Back cover (at the end of the roof) WALL WITH WINODWS (CLOSER TO ORDER DESK)
-        glm::mat4 backCoverModel = roofModel;
-        backCoverModel = glm::translate(backCoverModel, glm::vec3(0.0f, 33.0f, 0.0f));
+        // Back cover
+        glm::mat4 backCoverModel = glm::translate(roofModel, glm::vec3(0.0f, 33.0f, 0.0f));
         glUniformMatrix4fv(glGetUniformLocation(coverShader, "model"), 1, GL_FALSE, glm::value_ptr(backCoverModel));
         roof.DrawCovers();
 
-        // Draw ribs
+        // ========== RIB SYSTEM ==========
         glUseProgram(ribsShader);
         glUniformMatrix4fv(glGetUniformLocation(ribsShader, "model"), 1, GL_FALSE, glm::value_ptr(roofModel));
         glUniformMatrix4fv(glGetUniformLocation(ribsShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -517,9 +436,10 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(dustbinShader, "model"), 1, GL_FALSE, &dustbinModel2[0][0]);
         dustbin.render();
 
+        //===========================================================================================
         if (isDay)
         {
-            // Draw sun
+            // draw sun
             glUseProgram(sunShader);
             glm::mat4 sunModel = glm::mat4(1.0f);
             sunModel = glm::translate(sunModel, sunPosition);
@@ -531,7 +451,7 @@ int main()
         }
         else
         {
-            // Draw moon
+            // draw moon
             glUseProgram(moonShader);
             glm::mat4 moonModel = glm::mat4(1.0f);
             moonModel = glm::translate(moonModel, moonPosition);
@@ -550,9 +470,6 @@ int main()
     for (auto &chair : chairs)
     {
         chair.cleanup();
-    }
-    for (auto& table : smallTables) {
-    cleanupCounter(table);
     }
     glDeleteProgram(chairShader);
 
