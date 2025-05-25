@@ -16,11 +16,10 @@
 #include "dustbin.hpp"
 #include "dustbin.hpp"
 #include "roundChair.hpp"
+#include "highChairs.hpp"
 #include "plant.hpp"
 #include "cafeCounter.hpp"
 #include "coffeeMachine.hpp"
-
-
 
 const unsigned int WIDTH = 1000, HEIGHT = 800;
 
@@ -46,18 +45,17 @@ struct PointLight
 const int NUM_POINT_LIGHTS = 8;
 PointLight wallLights[NUM_POINT_LIGHTS] = {
     // Corners of the room (near ceiling)
-    {glm::vec3(-3.9f, 3.0f,  0.0f),  glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}, // Front left
-    {glm::vec3( 3.9f, 3.0f,  0.0f),  glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}, // Front right
+    {glm::vec3(-3.9f, 3.0f, 0.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f},   // Front left
+    {glm::vec3(3.9f, 3.0f, 0.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f},    // Front right
     {glm::vec3(-3.9f, 3.0f, -30.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}, // Back left
-    {glm::vec3( 3.9f, 3.0f, -30.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}, // Back right
+    {glm::vec3(3.9f, 3.0f, -30.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f},  // Back right
 
     // Optional: extra lights halfway along each wall
-    {glm::vec3( 0.0f, 3.0f,  0.0f),  glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}, // Center front
-    {glm::vec3( 0.0f, 3.0f, -30.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}, // Center back
+    {glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f},    // Center front
+    {glm::vec3(0.0f, 3.0f, -30.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f},  // Center back
     {glm::vec3(-3.9f, 3.0f, -15.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}, // Mid left
-    {glm::vec3( 3.9f, 3.0f, -15.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}  // Mid right
+    {glm::vec3(3.9f, 3.0f, -15.0f), glm::vec3(1.0f, 0.6f, 0.4f), 1.0f, 0.09f, 0.032f}   // Mid right
 };
-
 
 // Day/Night system
 bool isDay = true;
@@ -67,18 +65,30 @@ bool keyPressed = false; // prevent multiple toggles
 glm::vec3 sunPosition = glm::vec3(3.0f, 25.0f, 3.0f);
 glm::vec3 moonPosition = glm::vec3(-4.0f, 25.0f, -3.0f);
 
-// Add chair-related variables
+// round yellow chairs:
 GLuint chairShader;
 std::vector<RoundChair> chairs;
 const glm::vec3 CHAIR_SCALE = glm::vec3(0.3f); // Proper scale for chair size
 const std::vector<glm::vec3> CHAIR_POSITIONS = {
-    glm::vec3(1.5f, 0.0f, -10.0f),  // Right front
-    glm::vec3(-1.5f, 0.0f, -15.0f), // Left middle
-    glm::vec3(2.0f, 0.0f, -20.0f),  // Right back
-    glm::vec3(-2.0f, 0.0f, -20.0f)  // Left back
+    glm::vec3(1.5f, 0.0f, -10.0f),  // right front
+    glm::vec3(-1.5f, 0.0f, -15.0f), // left middle
+    glm::vec3(2.0f, 0.0f, -20.0f),  // right back
+    glm::vec3(-2.0f, 0.0f, -20.0f)  // left back
 };
 
-//Plant related variables
+// high chairs:
+GLuint highChairShader;
+std::vector<HighChair> highChairs;
+const glm::vec3 HIGH_CHAIR_SCALE = glm::vec3(0.4f); // Scale for high chairs
+const std::vector<glm::vec3> HIGH_CHAIR_POSITIONS = {
+    glm::vec3(-0.5f, 0.0f, -8.0f),  // left front
+    glm::vec3(0.5f, 0.0f, -12.0f),  // right middle-front
+    glm::vec3(-1.0f, 0.0f, -16.0f), // left middle-back
+    glm::vec3(1.2f, 0.0f, -22.0f),  // right back
+    glm::vec3(-0.8f, 0.0f, -25.0f)  // left far back
+};
+
+// Plant related variables
 std::vector<PlantMesh> plants;
 std::vector<glm::vec3> plantPositions = {
     glm::vec3(-3.0f, 0.1f, -12.0f),
@@ -86,16 +96,13 @@ std::vector<glm::vec3> plantPositions = {
     glm::vec3(-2.0f, 0.1f, -25.0f),
 };
 
-//cafeCounter stuff
+// cafeCounter stuff
 std::vector<TexturedMesh> counterMeshes;
 std::vector<TexturedMesh> chocolateBars;
 
-//coffee machine stuff
+// coffee machine stuff
 CoffeeMachine coffeeMachine;
 GLuint shaderProgram;
-
-
-
 
 void processInput(GLFWwindow *window)
 {
@@ -172,50 +179,58 @@ int main()
     GLuint sunShader = LoadShaders("sun_vertex.glsl", "sun_fragment.glsl");
     GLuint moonShader = LoadShaders("moon_vertex.glsl", "moon_fragment.glsl");
     GLuint dustbinShader = LoadShaders("dustbin_vertex.glsl", "dustbin_fragment.glsl");
-    // Load chair shader
-    chairShader = LoadShaders("roundChair_vertex.glsl", "roundChair_fragment.glsl");
+    // round and high chairs:
+    chairShader = LoadShaders("roundChair_vertex.glsl", "roundChair_fragment.glsl");   // round yellow chairs
+    highChairShader = LoadShaders("highChair_vertex.glsl", "highChair_fragment.glsl"); // high white chairs
 
     Sun sun;
     Roof roof(4.0f, 33.0f, 30, 10);
     Ribs ribs(4.0f, 33.0f, 8, 30);
     Moon moon;
     Dustbin dustbin;
-    // Initialize chairs
+
+    // initialize round chairs-----------------------------------------------------------------------------------------------------
     chairs.resize(4);
     for (auto &chair : chairs)
     {
         chair.initialize(chairShader);
     }
+
+    // high chairs
+    highChairs.resize(5);
+    for (auto &highChair : highChairs)
+    {
+        highChair.initialize(highChairShader);
+    }
+
     setupScene();
 
-    // Generate plant meshes
+    // Generate plant meshes-----------------------------------------------------------------------------------------------------
     plants.resize(plantPositions.size());
-    for (auto& plant : plants) {
-        auto randomLeaves = generateRandomLeaves(30);  // Try 30-50 for lush plants
+    for (auto &plant : plants)
+    {
+        auto randomLeaves = generateRandomLeaves(30); // Try 30-50 for lush plants
         generatePlant(plant, randomLeaves);
     }
 
-    //Cafe counter stuff
+    // Cafe counter stuff-----------------------------------------------------------------------------------------------------
     createCafeCounter(counterMeshes);
     createChocolateBarsOnCounter(chocolateBars);
 
     // Generate coffee machine textures
-         // Make sure this texture exists
+    // Make sure this texture exists
 
-        // Build coffee machine
-       metalTexture = generateMetalTexture();
-        redTexture = generateSolidColorTexture(0.7f, 0.1f, 0.1f);
-        blackTexture = generateSolidColorTexture(0.0f, 0.0f, 0.0f);
-        glassTexture = generateGlassTexture(); // This one has alpha!
-        coffeeMachine = buildCoffeeMachine();
-
-
-
+    // Build coffee machine
+    metalTexture = generateMetalTexture();
+    redTexture = generateSolidColorTexture(0.7f, 0.1f, 0.1f);
+    blackTexture = generateSolidColorTexture(0.0f, 0.0f, 0.0f);
+    glassTexture = generateGlassTexture(); // This one has alpha!
+    coffeeMachine = buildCoffeeMachine();
 
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-
+//-----------------------------------------------------------------------------------------------------
         if (isDay)
         {
             glClearColor(0.5f, 0.7f, 1.0f, 1.0f); // light blue sky
@@ -229,7 +244,7 @@ int main()
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + glm::vec3(rotationMatrix * glm::vec4(cameraFront, 0.0)), cameraUp);
         glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)WIDTH / HEIGHT, 0.1f, 100.0f);
 
-        // Draw main scene
+        // Draw main scene-----------------------------------------------------------------------------------------------------
         glUseProgram(shader);
         // NEW: Send point light data to shader
         for (int i = 0; i < NUM_POINT_LIGHTS; i++)
@@ -250,7 +265,7 @@ int main()
 
         drawScene(shader);
 
-        // draw round yellow chairs after floor but before transparent objects!!!!!!!!!!!1
+        // draw round yellow chairs after floor but before transparent objects!!!!!!!!!!!----------------------------------------------------------------------------
         glUseProgram(chairShader);
         for (size_t i = 0; i < chairs.size(); ++i)
         {
@@ -258,7 +273,7 @@ int main()
             model = glm::translate(model, CHAIR_POSITIONS[i]);
             model = glm::scale(model, CHAIR_SCALE);
 
-            // Set lighting uniforms to match scene
+            // set lighting uniforms to match scene
             glUniform3f(glGetUniformLocation(chairShader, "lightPos"),
                         isDay ? sunPosition.x : moonPosition.x,
                         isDay ? sunPosition.y : moonPosition.y,
@@ -273,38 +288,62 @@ int main()
             chairs[i].render(model, view, projection);
         }
 
-        //Render plants
+        // Draw high white chairs-----------------------------------------------------------------------------------------------------
+        glUseProgram(highChairShader);
+        for (size_t i = 0; i < highChairs.size(); ++i)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, HIGH_CHAIR_POSITIONS[i]);
+            model = glm::scale(model, HIGH_CHAIR_SCALE);
+
+            // rotate some chairs for variety
+            if (i % 2 == 1)
+            {
+                model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0, 1, 0));
+            }
+
+            glUniform3f(glGetUniformLocation(highChairShader, "lightPos"),
+                        isDay ? sunPosition.x : moonPosition.x,
+                        isDay ? sunPosition.y : moonPosition.y,
+                        isDay ? sunPosition.z : moonPosition.z);
+            glUniform3f(glGetUniformLocation(highChairShader, "viewPos"),
+                        cameraPos.x, cameraPos.y, cameraPos.z);
+            glUniform3f(glGetUniformLocation(highChairShader, "lightColor"),
+                        isDay ? 1.0f : 0.3f,
+                        isDay ? 1.0f : 0.3f,
+                        isDay ? 1.0f : 0.4f);
+
+            highChairs[i].render(model, view, projection);
+        }
+
+        // Render plants-----------------------------------------------------------------------------------------------------
         glUseProgram(shader);
         renderPlants(shader, plants, plantPositions);
 
-        // Draw café counter and chocolate bars
-    
-        glUniform1i(glGetUniformLocation(shader, "useTexture"), 1);  // Enable textures
+        // Draw café counter and chocolate bars-----------------------------------------------------------------------------------------------------
+
+        glUniform1i(glGetUniformLocation(shader, "useTexture"), 1); // Enable textures
         glm::mat4 counterModel = glm::mat4(1.0f);
         counterModel = glm::translate(counterModel, glm::vec3(0.0f, 0.0f, -3.0f)); // Adjust Z to be in front of west wall
         // counterModel = glm::rotate(counterModel, glm::radians(180.0f), glm::vec3(0, 1, 0));
 
-        for (const auto& mesh : counterMeshes) {
-            glActiveTexture(GL_TEXTURE0);  // Activate texture unit
-            glBindTexture(GL_TEXTURE_2D, mesh.textureID);  // Bind the texture
+        for (const auto &mesh : counterMeshes)
+        {
+            glActiveTexture(GL_TEXTURE0);                 // Activate texture unit
+            glBindTexture(GL_TEXTURE_2D, mesh.textureID); // Bind the texture
             renderTexturedMesh(mesh, shader, counterModel, view, projection);
         }
 
         renderChocolateBarsOnCounter(chocolateBars, shader, counterModel, view, projection);
 
         // Position coffee machine on the counter
-        glm::mat4 coffeeModel = counterModel; // Reuse the same base as counter
+        glm::mat4 coffeeModel = counterModel;                                   // Reuse the same base as counter
         coffeeModel = glm::translate(coffeeModel, glm::vec3(0.5f, 0.3f, 0.0f)); // Adjust as needed to place properly
         coffeeModel = glm::scale(coffeeModel, glm::vec3(0.3f));
 
         renderCoffeeMachine(coffeeMachine, shader, coffeeModel);
 
-
-        
-
-        
-
-        // Draw Roof (Transparent Yellow Semi-Cylinder)
+        // Draw Roof (Transparent Yellow Semi-Cylinder)-----------------------------------------------------------------------------------------------------
         glUseProgram(roofShader);
         glm::mat4 roofModel = glm::mat4(1.0f);
         roofModel = glm::translate(roofModel, glm::vec3(0.0f, 9.0f, -31.0f)); // start at north wall (Z=1.5)
@@ -366,7 +405,7 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(ribsShader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         ribs.Draw();
 
-        // Draw Dustbin ----------------------------------------
+        // Draw Dustbin ------------------------------------------------------------------------------------------------------
         glUseProgram(dustbinShader);
 
         // position near west wall (X = -3.5 to leave 0.5 unit space from wall)
@@ -428,11 +467,20 @@ int main()
         glfwPollEvents();
     }
 
+    // round yellow chairs----------------------------------------------------------------------------------------------------------------------------------------
     for (auto &chair : chairs)
     {
         chair.cleanup();
     }
     glDeleteProgram(chairShader);
+
+    // high chairs
+    for (auto &highChair : highChairs)
+    {
+        highChair.cleanup();
+    }
+    glDeleteProgram(highChairShader);
+
     cleanupCoffeeMachine(coffeeMachine);
 
     glfwTerminate();
