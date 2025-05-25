@@ -90,14 +90,23 @@ void processInput(GLFWwindow *window)
     }
 
     float speed = 0.1f;
+    glm::vec3 rotatedFront = glm::vec3(rotationMatrix * glm::vec4(cameraFront, 0.0));
+    glm::vec3 rotatedRight = glm::normalize(glm::cross(rotatedFront, cameraUp));
+    glm::vec3 rotatedUp = glm::vec3(rotationMatrix * glm::vec4(cameraUp, 0.0));
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += speed * cameraFront;
+        cameraPos += speed * rotatedFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= speed * cameraFront;
+        cameraPos -= speed * rotatedFront;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+        cameraPos -= speed * rotatedRight;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+        cameraPos += speed * rotatedRight;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        cameraPos += speed * rotatedUp;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        cameraPos -= speed * rotatedUp;
+
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         cameraPos.y += speed;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
