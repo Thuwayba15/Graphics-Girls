@@ -19,6 +19,7 @@
 #include "plant.hpp"
 #include "cafeCounter.hpp"
 #include "coffeeMachine.hpp"
+#include "table.hpp"
 
 
 
@@ -93,6 +94,11 @@ std::vector<TexturedMesh> chocolateBars;
 //coffee machine stuff
 CoffeeMachine coffeeMachine;
 GLuint shaderProgram;
+
+//Small table
+std::vector<Counter> smallTables;
+
+
 
 
 
@@ -210,6 +216,15 @@ int main()
         coffeeMachine = buildCoffeeMachine();
 
 
+    // Create small table
+    // Create one table per chair
+        smallTables.resize(CHAIR_POSITIONS.size());
+        for (auto& table : smallTables) {
+            generateCounter(table, 0.8f, 0.8f, 0.5f); // Smaller table: width, depth, height
+        }
+
+
+
 
 
     while (!glfwWindowShouldClose(window))
@@ -298,6 +313,20 @@ int main()
         coffeeModel = glm::scale(coffeeModel, glm::vec3(0.3f));
 
         renderCoffeeMachine(coffeeMachine, shader, coffeeModel);
+
+        //Small tables
+        // Use main shader for small tables
+        glUseProgram(shader);
+        for (size_t i = 0; i < smallTables.size(); ++i)
+        {
+            glm::vec3 chairPos = CHAIR_POSITIONS[i];
+            glm::vec3 tablePos = chairPos + glm::vec3(0.0f, 0.0f, -0.8f); // Offset slightly in front of chair
+            glm::mat4 tableModel = glm::mat4(1.0f);
+            tableModel = glm::translate(tableModel, tablePos);
+            renderCounter(smallTables[i], shader, tableModel, 0.5f);
+        }
+
+
 
 
         
@@ -431,6 +460,9 @@ int main()
     for (auto &chair : chairs)
     {
         chair.cleanup();
+    }
+    for (auto& table : smallTables) {
+    cleanupCounter(table);
     }
     glDeleteProgram(chairShader);
     cleanupCoffeeMachine(coffeeMachine);
