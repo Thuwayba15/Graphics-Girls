@@ -1,6 +1,12 @@
 // highChair_fragment.glsl
 #version 330 core
 
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    vec3 ambient;
+};
+
 in vec3 FragPos;
 in vec3 Normal;
 in vec3 Color;
