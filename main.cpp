@@ -21,6 +21,7 @@
 #include "cafeCounter.hpp"
 #include "coffeeMachine.hpp"
 #include "table.hpp"
+#include "couch.hpp"
 
 
 
@@ -109,6 +110,10 @@ GLuint shaderProgram;
 
 //Small table
 std::vector<Counter> smallTables;
+
+// Couch
+std::vector<TexturedMesh> couches;
+std::vector<glm::mat4> couchModels;
 
 
 
@@ -246,6 +251,28 @@ int main()
             generateCounter(table, 0.8f, 0.8f, 0.5f); // Smaller table: width, depth, height
         }
 
+    // Create couches-----------------------------------------------------------------------------------------------------
+    // Generate and place 3 couches
+    couches.resize(3);
+    couchModels.resize(3);
+
+    // Generate all couches
+    for (auto& couch : couches) {
+        generateCouch(couch, 0.0f, 0.0f, 0.0f, 2.2f, 1.2f, 1.0f, 8); // x,y,z irrelevant here
+    }
+
+    // Couch near east wall (facing west)
+    couchModels[0] = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 0.0f, -10.0f));
+    couchModels[0] = glm::rotate(couchModels[0], glm::radians(180.0f), glm::vec3(0, 1, 0));
+
+    // Couch near west wall (facing east)
+    couchModels[1] = glm::translate(glm::mat4(1.0f), glm::vec3(-3.0f, 0.0f, -20.0f)); // Already facing forward
+
+    // Couch near north wall (facing south)
+    couchModels[2] = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -29.0f));
+    couchModels[2] = glm::rotate(couchModels[2], glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+
 
 
 
@@ -378,12 +405,18 @@ int main()
             renderCounter(smallTables[i], shader, tableModel, 0.5f);
         }
 
+        // Draw couches-----------------------------------------------------------------------------------------------------
+        for (int i = 0; i < 3; ++i) {
+            renderMesh(couches[i], couchModels[i], shader);
+        }
+
+
 
 
 
         
 
-        
+
 
         // Draw Roof (Transparent Yellow Semi-Cylinder)
         glUseProgram(roofShader);
