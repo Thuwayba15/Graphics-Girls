@@ -11,6 +11,7 @@
 #include "moon.hpp"
 #include "roof.hpp"
 #include "ribs.hpp"
+#include "dustbin.hpp"
 
 const unsigned int WIDTH = 1000, HEIGHT = 800;
 
@@ -95,11 +96,13 @@ int main()
     GLuint ribsShader = LoadShaders("ribs_vertex.glsl", "ribs_fragment.glsl");
     GLuint sunShader = LoadShaders("sun_vertex.glsl", "sun_fragment.glsl");
     GLuint moonShader = LoadShaders("moon_vertex.glsl", "moon_fragment.glsl");
+    GLuint dustbinShader = LoadShaders("dustbin_vertex.glsl", "dustbin_fragment.glsl");
 
     Sun sun;
     Roof roof(4.0f, 33.0f, 30, 10);
     Ribs ribs(4.0f, 33.0f, 8, 30);
     Moon moon;
+    Dustbin dustbin;
     setupScene();
 
     while (!glfwWindowShouldClose(window))
@@ -133,10 +136,10 @@ int main()
         // Draw Roof (Transparent Yellow Semi-Cylinder)
         glUseProgram(roofShader);
         glm::mat4 roofModel = glm::mat4(1.0f);
-        roofModel = glm::translate(roofModel, glm::vec3(0.0f, 9.0f, -31.0f)); // Start at north wall (Z=1.5)
+        roofModel = glm::translate(roofModel, glm::vec3(0.0f, 9.0f, -31.0f)); // start at north wall (Z=1.5)
         roofModel = glm::rotate(roofModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         // scale to perfectly match wall dimensions
-        roofModel = glm::scale(roofModel, glm::vec3(1.0f, 1.0f, -1.0f)); // Ensure proper facing
+        roofModel = glm::scale(roofModel, glm::vec3(1.0f, 1.0f, -1.0f)); // ensure proper facing
 
         glUniformMatrix4fv(glGetUniformLocation(roofShader, "model"), 1, GL_FALSE, glm::value_ptr(roofModel));
         glUniformMatrix4fv(glGetUniformLocation(roofShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -185,12 +188,43 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(coverShader, "model"), 1, GL_FALSE, glm::value_ptr(backCoverModel));
         roof.DrawCovers();
 
-        // Draw ribs
+        // raw ribs
         glUseProgram(ribsShader);
         glUniformMatrix4fv(glGetUniformLocation(ribsShader, "model"), 1, GL_FALSE, glm::value_ptr(roofModel));
         glUniformMatrix4fv(glGetUniformLocation(ribsShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(ribsShader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         ribs.Draw();
+
+        // Draw Dustbin ----------------------------------------
+        glUseProgram(dustbinShader);
+
+        // Position near west wall (X = -3.5 to leave 0.5 unit space from wall)
+        glm::mat4 dustbinModel = glm::mat4(1.0f);
+        dustbinModel = glm::translate(dustbinModel, glm::vec3(-3.5f, 1.0f, -30.0f));
+
+        dustbinModel = glm::rotate(dustbinModel, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+        glUniformMatrix4fv(glGetUniformLocation(dustbinShader, "model"), 1, GL_FALSE, &dustbinModel[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(dustbinShader, "view"), 1, GL_FALSE, &view[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(dustbinShader, "projection"), 1, GL_FALSE, &projection[0][0]);
+        glUniform3f(glGetUniformLocation(dustbinShader, "lightPos"),
+                    isDay ? sunPosition.x : moonPosition.x,
+                    isDay ? sunPosition.y : moonPosition.y,
+                    isDay ? sunPosition.z : moonPosition.z);
+        glUniform3f(glGetUniformLocation(dustbinShader, "viewPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+        glUniform3f(glGetUniformLocation(dustbinShader, "lightColor"),
+                    isDay ? 1.0f : 0.2f,
+                    isDay ? 1.0f : 0.2f,
+                    isDay ? 1.0f : 0.2f);
+
+        dustbin.render();
+
+        // 2nd dustbin (2 units to the right along the wall)
+        glm::mat4 dustbinModel2 = glm::mat4(1.0f);
+        dustbinModel2 = glm::translate(dustbinModel2, glm::vec3(-3.5f, 1.0f, -28.0f)); // +2.0 in Z
+        dustbinModel2 = glm::rotate(dustbinModel2, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+        glUniformMatrix4fv(glGetUniformLocation(dustbinShader, "model"), 1, GL_FALSE, &dustbinModel2[0][0]);
+        dustbin.render();
 
         if (isDay)
         {
