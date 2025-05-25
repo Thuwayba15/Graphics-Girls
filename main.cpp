@@ -15,6 +15,8 @@
 #include "dustbin.hpp"
 #include "dustbin.hpp"
 #include "roundChair.hpp"
+#include "plant.hpp"
+
 
 const unsigned int WIDTH = 1000, HEIGHT = 800;
 
@@ -64,6 +66,15 @@ const std::vector<glm::vec3> CHAIR_POSITIONS = {
     glm::vec3(2.0f, 0.0f, -20.0f),  // Right back
     glm::vec3(-2.0f, 0.0f, -20.0f)  // Left back
 };
+
+//Plant related variables
+std::vector<PlantMesh> plants;
+std::vector<glm::vec3> plantPositions = {
+    glm::vec3(-3.0f, 0.0f, -12.0f),
+    glm::vec3(2.0f, 0.0f, -18.0f),
+    glm::vec3(-2.0f, 0.0f, -25.0f),
+};
+
 
 void processInput(GLFWwindow *window)
 {
@@ -147,6 +158,14 @@ int main()
     }
     setupScene();
 
+    // Generate plant meshes
+    plants.resize(plantPositions.size());
+    for (auto& plant : plants) {
+        auto randomLeaves = generateRandomLeaves(30);  // Try 30-50 for lush plants
+        generatePlant(plant, randomLeaves);
+    }
+
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -207,6 +226,10 @@ int main()
 
             chairs[i].render(model, view, projection);
         }
+
+        //Render plants
+        glUseProgram(shader);
+        renderPlants(shader, plants, plantPositions);
 
         // Draw Roof (Transparent Yellow Semi-Cylinder)
         glUseProgram(roofShader);
