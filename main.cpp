@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <string>
 #include "shader.hpp"
 #include "scene.hpp"
 #include "texture_loader.hpp"
@@ -22,6 +23,26 @@ glm::mat4 rotationMatrix = glm::mat4(1.0f);
 glm::vec3 rotatedFront = glm::vec3(rotationMatrix * glm::vec4(cameraFront, 0.0));
 glm::vec3 rotatedUp = glm::vec3(rotationMatrix * glm::vec4(cameraUp, 0.0));
 glm::mat4 view = glm::lookAt(cameraPos, cameraPos + rotatedFront, rotatedUp);
+
+// ========== Point Light Structure ==========
+struct PointLight
+{
+    glm::vec3 position;
+    glm::vec3 color;
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+// ========== Light Configuration ==========
+const int NUM_POINT_LIGHTS = 4;
+PointLight wallLights[NUM_POINT_LIGHTS] = {
+    // left wall lights (x = -3.9)
+    {glm::vec3(-3.9f, 3.0f, -10.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f},
+    {glm::vec3(-3.9f, 3.0f, -20.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f},
+    // right wall lights (x = 3.9)
+    {glm::vec3(3.9f, 3.0f, -10.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f},
+    {glm::vec3(3.9f, 3.0f, -20.0f), glm::vec3(1.0f, 0.8f, 0.6f), 1.0f, 0.09f, 0.032f}};
 
 // Day/Night system
 bool isDay = true;
@@ -124,13 +145,23 @@ int main()
 
         // Draw main scene
         glUseProgram(shader);
+        // NEW: Send point light data to shader
+        for (int i = 0; i < NUM_POINT_LIGHTS; i++)
+        {
+            std::string prefix = "pointLights[" + std::to_string(i) + "]";
+            glUniform3fv(glGetUniformLocation(shader, (prefix + ".position").c_str()), 1, &wallLights[i].position[0]);
+            glUniform3fv(glGetUniformLocation(shader, (prefix + ".color").c_str()), 1, &wallLights[i].color[0]);
+            glUniform1f(glGetUniformLocation(shader, (prefix + ".constant").c_str()), wallLights[i].constant);
+            glUniform1f(glGetUniformLocation(shader, (prefix + ".linear").c_str()), wallLights[i].linear);
+            glUniform1f(glGetUniformLocation(shader, (prefix + ".quadratic").c_str()), wallLights[i].quadratic);
+        }
+
         glm::mat4 model = glm::mat4(1.0f);
         glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-        glUniform3f(glGetUniformLocation(shader, "lightPos"), 3.0f, 10.0f, 3.0f);
-        glUniform3f(glGetUniformLocation(shader, "lightColor"), 1.0f, 1.0f, 1.0f);
         glUniform3f(glGetUniformLocation(shader, "viewPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
         drawScene(shader);
 
         // Draw Roof (Transparent Yellow Semi-Cylinder)
@@ -188,7 +219,7 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(coverShader, "model"), 1, GL_FALSE, glm::value_ptr(backCoverModel));
         roof.DrawCovers();
 
-        // raw ribs
+        // Draw ribs
         glUseProgram(ribsShader);
         glUniformMatrix4fv(glGetUniformLocation(ribsShader, "model"), 1, GL_FALSE, glm::value_ptr(roofModel));
         glUniformMatrix4fv(glGetUniformLocation(ribsShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -198,7 +229,7 @@ int main()
         // Draw Dustbin ----------------------------------------
         glUseProgram(dustbinShader);
 
-        // Position near west wall (X = -3.5 to leave 0.5 unit space from wall)
+        // position near west wall (X = -3.5 to leave 0.5 unit space from wall)
         glm::mat4 dustbinModel = glm::mat4(1.0f);
         dustbinModel = glm::translate(dustbinModel, glm::vec3(-3.5f, 1.0f, -30.0f));
 
