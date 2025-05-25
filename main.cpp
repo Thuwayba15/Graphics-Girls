@@ -70,9 +70,9 @@ const std::vector<glm::vec3> CHAIR_POSITIONS = {
 //Plant related variables
 std::vector<PlantMesh> plants;
 std::vector<glm::vec3> plantPositions = {
-    glm::vec3(-3.0f, 0.0f, -12.0f),
-    glm::vec3(2.0f, 0.0f, -18.0f),
-    glm::vec3(-2.0f, 0.0f, -25.0f),
+    glm::vec3(-3.0f, 0.1f, -12.0f),
+    glm::vec3(2.0f, 0.1f, -18.0f),
+    glm::vec3(-2.0f, 0.1f, -25.0f),
 };
 
 

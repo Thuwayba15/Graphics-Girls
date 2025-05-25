@@ -137,6 +137,9 @@ GLuint generateLeafTexture() {
             
             // Apply leaf shape as alpha
             float alpha = std::max(0.0f, leafShape);
+            auto clampColor = [](float v) {
+                return std::max(0.0f, std::min(1.0f, v));
+            };
             
             data[index] = (unsigned char)((baseR + centralVein * 0.1f + sideVeins) * 255);
             data[index + 1] = (unsigned char)((baseG + centralVein * 0.15f + sideVeins) * 255);
