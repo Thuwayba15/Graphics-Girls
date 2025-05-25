@@ -12,6 +12,10 @@ GLuint generateDarkShinyGreyTexture();
 GLuint generateLightGreyMarbleTexture();
 GLuint generateSolidColorTexture(float r, float g, float b);
 GLuint generateGlassTexture();
+GLuint generateCarpetTexture();
+GLuint generateWoodTexture();
+
+
 
 
 

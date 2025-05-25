@@ -35,7 +35,7 @@ void setupScene() {
     glEnableVertexAttribArray(2);
     glBindVertexArray(0);
 
-    carpetTexture = loadTexture("carpet.jpeg");
+    carpetTexture = generateCarpetTexture();
 }
 
 void drawScene(GLuint shader) {
