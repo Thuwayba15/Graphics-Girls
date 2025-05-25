@@ -4208,6 +4208,20 @@ std::vector<glm::vec3> plantPositions = {
     glm::vec3(-3.2f, 0.2f, -28.7f)   // Back left corner
 };
 
+// Create first couch mesh (left side)
+// Create couch meshes - Left side (2 couches)
+TexturedMesh couchMesh1;
+generateCouch(couchMesh1, -2.5f, -0.5f, -8.0f, 2.0f, 1.0f, 0.8f, 8);
+
+TexturedMesh couchMesh2;
+generateCouch(couchMesh2, -2.5f, -0.5f, -12.0f, 2.0f, 1.0f, 0.8f, 8);
+
+// Create couch meshes - Right side (2 couches)
+TexturedMesh couchMesh3;
+generateCouch(couchMesh3, 2.5f, -0.5f, -8.0f, 2.0f, 1.0f, 0.8f, 8);
+
+TexturedMesh couchMesh4;
+generateCouch(couchMesh4, 2.5f, -0.5f, -12.0f, 2.0f, 1.0f, 0.8f, 8);
 // Generate leaf configurations for each plant using your function
 std::vector<std::vector<Leaf>> plantLeaves(4);
     for (int p = 0; p < 4; p++) {
@@ -4220,8 +4234,7 @@ std::vector<std::vector<Leaf>> plantLeaves(4);
         generatePlant(plants[i], plantLeaves[i]);
     }
 
-
-
+    
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -4261,7 +4274,72 @@ std::vector<std::vector<Leaf>> plantLeaves(4);
         // Render plants
         renderPlants(ObjectShaders, plants , plantPositions, view, projection);
         
-        // Draw Roof (Transparent Yellow Semi-Cylinder)
+// Render left side couches (facing toward positive x - toward right side)
+// glm::mat4 couchModel1 = glm::mat4(1.0f);
+// glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(couchModel1));
+// glBindTexture(GL_TEXTURE_2D, couchMesh1.textureID);  
+// glUniform1f(glGetUniformLocation(shader, "shininess"), 10.0f);
+// glUniform3fv(glGetUniformLocation(shader, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+// glBindVertexArray(couchMesh1.VAO);
+// glDrawElements(GL_TRIANGLES, couchMesh1.indices.size(), GL_UNSIGNED_INT, 0);
+
+// glm::mat4 couchModel2 = glm::mat4(1.0f);
+// glUniformMatrix4fv(glGetUniformLocation(ObjectShaders, "model"), 1, GL_FALSE, glm::value_ptr(couchModel2));
+// glBindTexture(GL_TEXTURE_2D, couchMesh2.textureID);  
+// glUniform1f(glGetUniformLocation(ObjectShaders, "shininess"), 10.0f);
+// glUniform3fv(glGetUniformLocation(ObjectShaders, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+// glBindVertexArray(couchMesh2.VAO);
+// glDrawElements(GL_TRIANGLES, couchMesh2.indices.size(), GL_UNSIGNED_INT, 0);
+
+
+glm::mat4 couchModel1 = glm::mat4(1.0f);
+couchModel1 = glm::translate(couchModel1, glm::vec3(-2.5f, -0.5f, -8.0f));
+couchModel1 = glm::rotate(couchModel1, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+couchModel1 = glm::translate(couchModel1, glm::vec3(2.5f, 0.5f, 8.0f));
+glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(couchModel1));
+glBindTexture(GL_TEXTURE_2D, couchMesh1.textureID);  
+glUniform1f(glGetUniformLocation(ObjectShaders, "shininess"), 10.0f);
+glUniform3fv(glGetUniformLocation(ObjectShaders, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+glBindVertexArray(couchMesh1.VAO);
+glDrawElements(GL_TRIANGLES, couchMesh1.indices.size(), GL_UNSIGNED_INT, 0);
+
+glm::mat4 couchModel2 = glm::mat4(1.0f);
+couchModel2 = glm::translate(couchModel2, glm::vec3(-2.5f, -0.5f, -15.0f));
+couchModel2 = glm::rotate(couchModel2, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+couchModel2 = glm::translate(couchModel2, glm::vec3(2.5f, 0.5f, 15.0f));
+glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(couchModel2));
+glBindTexture(GL_TEXTURE_2D, couchMesh2.textureID);  
+glUniform1f(glGetUniformLocation(ObjectShaders, "shininess"), 10.0f);
+glUniform3fv(glGetUniformLocation(ObjectShaders, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+glBindVertexArray(couchMesh2.VAO);
+glDrawElements(GL_TRIANGLES, couchMesh2.indices.size(), GL_UNSIGNED_INT, 0);
+
+// Render right side couches (facing toward negative x - toward left side)
+glm::mat4 couchModel3 = glm::mat4(1.0f);
+couchModel3 = glm::translate(couchModel3, glm::vec3(2.5f, -0.5f, -8.0f));
+couchModel3 = glm::rotate(couchModel3, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+couchModel3 = glm::translate(couchModel3, glm::vec3(-2.5f, 0.5f, 8.0f));
+glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(couchModel3));
+glBindTexture(GL_TEXTURE_2D, couchMesh3.textureID);  
+glUniform1f(glGetUniformLocation(ObjectShaders, "shininess"), 10.0f);
+glUniform3fv(glGetUniformLocation(ObjectShaders, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+glBindVertexArray(couchMesh3.VAO);
+glDrawElements(GL_TRIANGLES, couchMesh3.indices.size(), GL_UNSIGNED_INT, 0);
+
+glm::mat4 couchModel4 = glm::mat4(1.0f);
+couchModel4 = glm::translate(couchModel4, glm::vec3(2.5f, -0.5f, -15.0f));
+couchModel4 = glm::rotate(couchModel4, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+couchModel4 = glm::translate(couchModel4, glm::vec3(-2.5f, 0.5f, 15.0f));
+glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(couchModel4));
+glBindTexture(GL_TEXTURE_2D, couchMesh4.textureID);  
+glUniform1f(glGetUniformLocation(ObjectShaders, "shininess"), 10.0f);
+glUniform3fv(glGetUniformLocation(ObjectShaders, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+glBindVertexArray(couchMesh4.VAO);
+glDrawElements(GL_TRIANGLES, couchMesh4.indices.size(), GL_UNSIGNED_INT, 0);
+        
+
+
+// Draw Roof (Transparent Yellow Semi-Cylinder)
         glUseProgram(roofShader);
         glm::mat4 roofModel = glm::mat4(1.0f);
         roofModel = glm::translate(roofModel, glm::vec3(0.0f, 9.0f, -31.0f)); // Start at north wall (Z=1.5)
