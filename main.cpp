@@ -13,6 +13,8 @@
 #include "roof.hpp"
 #include "ribs.hpp"
 #include "dustbin.hpp"
+#include "dustbin.hpp"
+#include "roundChair.hpp"
 
 const unsigned int WIDTH = 1000, HEIGHT = 800;
 
@@ -51,6 +53,17 @@ bool keyPressed = false; // prevent multiple toggles
 // light positions
 glm::vec3 sunPosition = glm::vec3(3.0f, 25.0f, 3.0f);
 glm::vec3 moonPosition = glm::vec3(-4.0f, 25.0f, -3.0f);
+
+// Add chair-related variables
+GLuint chairShader;
+std::vector<RoundChair> chairs;
+const glm::vec3 CHAIR_SCALE = glm::vec3(0.3f); // Proper scale for chair size
+const std::vector<glm::vec3> CHAIR_POSITIONS = {
+    glm::vec3(1.5f, 0.0f, -10.0f),  // Right front
+    glm::vec3(-1.5f, 0.0f, -15.0f), // Left middle
+    glm::vec3(2.0f, 0.0f, -20.0f),  // Right back
+    glm::vec3(-2.0f, 0.0f, -20.0f)  // Left back
+};
 
 void processInput(GLFWwindow *window)
 {
@@ -118,12 +131,20 @@ int main()
     GLuint sunShader = LoadShaders("sun_vertex.glsl", "sun_fragment.glsl");
     GLuint moonShader = LoadShaders("moon_vertex.glsl", "moon_fragment.glsl");
     GLuint dustbinShader = LoadShaders("dustbin_vertex.glsl", "dustbin_fragment.glsl");
+    // Load chair shader
+    chairShader = LoadShaders("roundChair_vertex.glsl", "roundChair_fragment.glsl");
 
     Sun sun;
     Roof roof(4.0f, 33.0f, 30, 10);
     Ribs ribs(4.0f, 33.0f, 8, 30);
     Moon moon;
     Dustbin dustbin;
+    // Initialize chairs
+    chairs.resize(4);
+    for (auto &chair : chairs)
+    {
+        chair.initialize(chairShader);
+    }
     setupScene();
 
     while (!glfwWindowShouldClose(window))
@@ -163,6 +184,29 @@ int main()
         glUniform3f(glGetUniformLocation(shader, "viewPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
         drawScene(shader);
+
+        // draw round yellow chairs after floor but before transparent objects!!!!!!!!!!!1
+        glUseProgram(chairShader);
+        for (size_t i = 0; i < chairs.size(); ++i)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, CHAIR_POSITIONS[i]);
+            model = glm::scale(model, CHAIR_SCALE);
+
+            // Set lighting uniforms to match scene
+            glUniform3f(glGetUniformLocation(chairShader, "lightPos"),
+                        isDay ? sunPosition.x : moonPosition.x,
+                        isDay ? sunPosition.y : moonPosition.y,
+                        isDay ? sunPosition.z : moonPosition.z);
+            glUniform3f(glGetUniformLocation(chairShader, "viewPos"),
+                        cameraPos.x, cameraPos.y, cameraPos.z);
+            glUniform3f(glGetUniformLocation(chairShader, "lightColor"),
+                        isDay ? 1.0f : 0.2f,
+                        isDay ? 1.0f : 0.2f,
+                        isDay ? 1.0f : 0.2f);
+
+            chairs[i].render(model, view, projection);
+        }
 
         // Draw Roof (Transparent Yellow Semi-Cylinder)
         glUseProgram(roofShader);
@@ -231,9 +275,9 @@ int main()
 
         // position near west wall (X = -3.5 to leave 0.5 unit space from wall)
         glm::mat4 dustbinModel = glm::mat4(1.0f);
-        dustbinModel = glm::translate(dustbinModel, glm::vec3(-3.5f, 1.0f, -30.0f));
-
+        dustbinModel = glm::translate(dustbinModel, glm::vec3(-3.5f, 0.5f, -30.0f));
         dustbinModel = glm::rotate(dustbinModel, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+        dustbinModel = glm::scale(dustbinModel, glm::vec3(0.7f)); // 70% of original size
 
         glUniformMatrix4fv(glGetUniformLocation(dustbinShader, "model"), 1, GL_FALSE, &dustbinModel[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(dustbinShader, "view"), 1, GL_FALSE, &view[0][0]);
@@ -252,8 +296,10 @@ int main()
 
         // 2nd dustbin (2 units to the right along the wall)
         glm::mat4 dustbinModel2 = glm::mat4(1.0f);
-        dustbinModel2 = glm::translate(dustbinModel2, glm::vec3(-3.5f, 1.0f, -28.0f)); // +2.0 in Z
+        dustbinModel2 = glm::translate(dustbinModel2, glm::vec3(-3.5f, 0.5f, -28.0f));
         dustbinModel2 = glm::rotate(dustbinModel2, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+        dustbinModel2 = glm::scale(dustbinModel2, glm::vec3(0.7f)); // Same scale factor
+
         glUniformMatrix4fv(glGetUniformLocation(dustbinShader, "model"), 1, GL_FALSE, &dustbinModel2[0][0]);
         dustbin.render();
 
@@ -285,6 +331,12 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    for (auto &chair : chairs)
+    {
+        chair.cleanup();
+    }
+    glDeleteProgram(chairShader);
 
     glfwTerminate();
     return 0;
