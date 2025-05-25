@@ -16,6 +16,8 @@
 #include "dustbin.hpp"
 #include "roundChair.hpp"
 #include "plant.hpp"
+#include "cafeCounter.hpp"
+
 
 
 const unsigned int WIDTH = 1000, HEIGHT = 800;
@@ -75,6 +77,11 @@ std::vector<glm::vec3> plantPositions = {
     glm::vec3(-2.0f, 0.1f, -25.0f),
 };
 
+//cafeCounter stuff
+std::vector<TexturedMesh> counterMeshes;
+std::vector<TexturedMesh> chocolateBars;
+
+
 
 void processInput(GLFWwindow *window)
 {
@@ -89,7 +96,7 @@ void processInput(GLFWwindow *window)
         keyPressed = false;
     }
 
-    float speed = 0.1f;
+    float speed = 0.3f;
     glm::vec3 rotatedFront = glm::vec3(rotationMatrix * glm::vec4(cameraFront, 0.0));
     glm::vec3 rotatedRight = glm::normalize(glm::cross(rotatedFront, cameraUp));
     glm::vec3 rotatedUp = glm::vec3(rotationMatrix * glm::vec4(cameraUp, 0.0));
@@ -174,6 +181,11 @@ int main()
         generatePlant(plant, randomLeaves);
     }
 
+    //Cafe counter stuff
+    createCafeCounter(counterMeshes);
+    createChocolateBarsOnCounter(chocolateBars);
+
+
 
     while (!glfwWindowShouldClose(window))
     {
@@ -239,6 +251,23 @@ int main()
         //Render plants
         glUseProgram(shader);
         renderPlants(shader, plants, plantPositions);
+
+        // Draw café counter and chocolate bars
+    
+        glUniform1i(glGetUniformLocation(shader, "useTexture"), 1);  // Enable textures
+        glm::mat4 counterModel = glm::mat4(1.0f);
+        counterModel = glm::translate(counterModel, glm::vec3(0.0f, 0.0f, -3.0f)); // Adjust Z to be in front of west wall
+        // counterModel = glm::rotate(counterModel, glm::radians(180.0f), glm::vec3(0, 1, 0));
+
+        for (const auto& mesh : counterMeshes) {
+            glActiveTexture(GL_TEXTURE0);  // Activate texture unit
+            glBindTexture(GL_TEXTURE_2D, mesh.textureID);  // Bind the texture
+            renderTexturedMesh(mesh, shader, counterModel, view, projection);
+        }
+
+        renderChocolateBarsOnCounter(chocolateBars, shader, counterModel, view, projection);
+
+        
 
         // Draw Roof (Transparent Yellow Semi-Cylinder)
         glUseProgram(roofShader);
