@@ -4298,8 +4298,8 @@ couchModel1 = glm::rotate(couchModel1, glm::radians(90.0f), glm::vec3(0.0f, 1.0f
 couchModel1 = glm::translate(couchModel1, glm::vec3(2.5f, 0.5f, 8.0f));
 glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(couchModel1));
 glBindTexture(GL_TEXTURE_2D, couchMesh1.textureID);  
-glUniform1f(glGetUniformLocation(ObjectShaders, "shininess"), 10.0f);
-glUniform3fv(glGetUniformLocation(ObjectShaders, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+glUniform1f(glGetUniformLocation(shader, "shininess"), 10.0f);
+glUniform3fv(glGetUniformLocation(shader, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
 glBindVertexArray(couchMesh1.VAO);
 glDrawElements(GL_TRIANGLES, couchMesh1.indices.size(), GL_UNSIGNED_INT, 0);
 
@@ -4309,8 +4309,8 @@ couchModel2 = glm::rotate(couchModel2, glm::radians(90.0f), glm::vec3(0.0f, 1.0f
 couchModel2 = glm::translate(couchModel2, glm::vec3(2.5f, 0.5f, 15.0f));
 glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(couchModel2));
 glBindTexture(GL_TEXTURE_2D, couchMesh2.textureID);  
-glUniform1f(glGetUniformLocation(ObjectShaders, "shininess"), 10.0f);
-glUniform3fv(glGetUniformLocation(ObjectShaders, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+glUniform1f(glGetUniformLocation(shader, "shininess"), 10.0f);
+glUniform3fv(glGetUniformLocation(shader, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
 glBindVertexArray(couchMesh2.VAO);
 glDrawElements(GL_TRIANGLES, couchMesh2.indices.size(), GL_UNSIGNED_INT, 0);
 
@@ -4321,8 +4321,8 @@ couchModel3 = glm::rotate(couchModel3, glm::radians(-90.0f), glm::vec3(0.0f, 1.0
 couchModel3 = glm::translate(couchModel3, glm::vec3(-2.5f, 0.5f, 8.0f));
 glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(couchModel3));
 glBindTexture(GL_TEXTURE_2D, couchMesh3.textureID);  
-glUniform1f(glGetUniformLocation(ObjectShaders, "shininess"), 10.0f);
-glUniform3fv(glGetUniformLocation(ObjectShaders, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+glUniform1f(glGetUniformLocation(shader, "shininess"), 10.0f);
+glUniform3fv(glGetUniformLocation(shader, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
 glBindVertexArray(couchMesh3.VAO);
 glDrawElements(GL_TRIANGLES, couchMesh3.indices.size(), GL_UNSIGNED_INT, 0);
 
@@ -4332,8 +4332,8 @@ couchModel4 = glm::rotate(couchModel4, glm::radians(-90.0f), glm::vec3(0.0f, 1.0
 couchModel4 = glm::translate(couchModel4, glm::vec3(-2.5f, 0.5f, 15.0f));
 glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(couchModel4));
 glBindTexture(GL_TEXTURE_2D, couchMesh4.textureID);  
-glUniform1f(glGetUniformLocation(ObjectShaders, "shininess"), 10.0f);
-glUniform3fv(glGetUniformLocation(ObjectShaders, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
+glUniform1f(glGetUniformLocation(shader, "shininess"), 10.0f);
+glUniform3fv(glGetUniformLocation(shader, "specular"), 1, glm::value_ptr(glm::vec3(0.05f, 0.3f, 0.3f)));
 glBindVertexArray(couchMesh4.VAO);
 glDrawElements(GL_TRIANGLES, couchMesh4.indices.size(), GL_UNSIGNED_INT, 0);
         
