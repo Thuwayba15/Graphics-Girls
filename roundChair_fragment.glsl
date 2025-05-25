@@ -1,5 +1,11 @@
 #version 330 core
 
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    vec3 ambient;
+};
+
 out vec4 FragColor;
 
 in vec3 FragPos;
